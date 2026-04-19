@@ -1,0 +1,9 @@
+---
+description: Restrict edits to this repository root (for clones without user global rules)
+alwaysApply: true
+---
+
+# Workspace boundary
+
+- Only modify files under this repository root. Do not edit files outside the opened workspace.
+- Prefer `.env.example` and in-repo docs over writing configs or secrets elsewhere.

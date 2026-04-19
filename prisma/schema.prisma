@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// One-time encrypted secret (ciphertext only; passphrase never stored).
+model Secret {
+  id          String    @id
+  salt        String
+  iv          String
+  ciphertext  String    @db.Text
+  version     Int       @default(1)
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+  consumedAt  DateTime?
+
+  @@index([createdAt])
+  @@index([expiresAt])
+}
+
+/// Short-lived token so a phone can open `/create?pair=…` and submit the same flow.
+model PairingSession {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  @@index([expiresAt])
+}
