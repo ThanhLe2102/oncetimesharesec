@@ -1,48 +1,53 @@
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Next.js
-.next/
-out/
+# testing
+/coverage
 
-# Production / build
-build/
+# next.js
+/.next/
+/out/
+
+# production
+/build
 dist/
-*.tsbuildinfo
 
-# Environment and secrets
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+pnpm-debug.log*
+
+# env files
 .env
 .env.*
 !.env.example
 
-# Vercel
+# vercel
 .vercel
 
-# Debug logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# typescript
+*.tsbuildinfo
 
-# Testing
-coverage/
-
-# ESLint cache
+# eslint
 .eslintcache
 
-# Prisma local databases (if used)
-*.db
-*.db-journal
-
-# OS
-.DS_Store
-Thumbs.db
+# prisma
+prisma/*.db
+prisma/*.db-journal
 
 # IDE / editor
 .idea/
