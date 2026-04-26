@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import { prisma } from "@/lib/prisma";
 import { assertReasonablePayloadSize, createSecretBodySchema } from "@/lib/payload";
 import { DEFAULT_TTL_HOURS } from "@/lib/constants";
+import { Prisma } from "@prisma/client";
 
 export async function POST(request: Request) {
   let json: unknown;
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
         }
         await tx.pairingSession.update({
           where: { id: pair.id },
-          data: { usedAt: new Date() },
+          data: { usedAt: new Date(), secretId: id },
         });
       }
 
@@ -62,7 +63,22 @@ export async function POST(request: Request) {
     if (e instanceof Error && e.message === "PAIRING_INVALID") {
       return NextResponse.json({ error: "Invalid or expired pairing session" }, { status: 400 });
     }
-    throw e;
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      // Common dev mistake: code changed but DB wasn't migrated (missing table/column).
+      if (e.code === "P2021" || e.code === "P2022") {
+        return NextResponse.json(
+          {
+            error:
+              "Database schema is out of date. Run `npx prisma migrate deploy` (or `npx prisma migrate dev`) and try again.",
+            code: e.code,
+          },
+          { status: 500 },
+        );
+      }
+    }
+    // Ensure the client always gets JSON (mobile otherwise sees "Could not store secret").
+    console.error("Failed to store secret", e);
+    return NextResponse.json({ error: "Internal error storing secret" }, { status: 500 });
   }
 
   return NextResponse.json({ id, expiresAt: expiresAt.toISOString() });

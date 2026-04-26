@@ -25,7 +25,6 @@ export async function GET(request: Request) {
     where: {
       token,
       expiresAt: { gt: new Date() },
-      usedAt: null,
     },
   });
 
@@ -35,6 +34,9 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     valid: true,
+    usable: row.usedAt === null,
     expiresAt: row.expiresAt.toISOString(),
+    usedAt: row.usedAt ? row.usedAt.toISOString() : null,
+    secretId: row.secretId ?? null,
   });
 }
