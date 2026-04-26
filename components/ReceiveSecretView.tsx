@@ -19,11 +19,17 @@ export function ReceiveSecretView({ secretId }: Props) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [bundle, setBundle] = useState<Bundle | null>(null);
+  const [webCryptoOk, setWebCryptoOk] = useState(true);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [passphrase, setPassphrase] = useState("");
   const [decryptError, setDecryptError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const ok = Boolean(globalThis.isSecureContext && globalThis.crypto?.subtle);
+    setWebCryptoOk(ok);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -121,6 +127,13 @@ export function ReceiveSecretView({ secretId }: Props) {
     <>
       <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-6">
         <h2 className="text-lg font-medium">Encrypted one-time secret</h2>
+        {!webCryptoOk && (
+          <p className="mt-3 rounded border border-[var(--danger)]/50 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)]">
+            Decryption is unavailable because this page is not in a secure context. Open it using{" "}
+            <span className="font-mono">https://</span> (or <span className="font-mono">http://localhost</span> on the
+            same machine).
+          </p>
+        )}
         <p className="mt-2 text-sm text-[var(--muted)]">
           This message can only be decrypted with the passphrase. After you copy it once, the ciphertext is removed
           from the server.
@@ -134,7 +147,8 @@ export function ReceiveSecretView({ secretId }: Props) {
         </ul>
         <button
           type="button"
-          className="mt-6 rounded-md bg-[var(--accent-dim)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+          disabled={!webCryptoOk}
+          className="mt-6 rounded-md bg-[var(--accent-dim)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => setModalOpen(true)}
         >
           Decrypt and copy

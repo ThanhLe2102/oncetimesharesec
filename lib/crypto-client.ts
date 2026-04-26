@@ -10,6 +10,20 @@ const PBKDF2_ITERATIONS = 310_000;
 const SALT_BYTES = 16;
 const IV_BYTES = 12;
 
+function assertWebCryptoAvailable(): void {
+  // WebCrypto subtle is only available in secure contexts (HTTPS or localhost).
+  if (!globalThis.isSecureContext) {
+    throw new Error(
+      "WebCrypto requires a secure context (HTTPS). Open this site via https:// or http://localhost.",
+    );
+  }
+  if (!globalThis.crypto?.subtle) {
+    throw new Error(
+      "WebCrypto is unavailable in this browser/context. Try a modern browser over HTTPS.",
+    );
+  }
+}
+
 function bytesToBase64(bytes: Uint8Array): string {
   let binary = "";
   const chunk = 0x8000;
@@ -29,6 +43,7 @@ function base64ToBytes(b64: string): Uint8Array {
 }
 
 async function deriveAesKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
+  assertWebCryptoAvailable();
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
@@ -55,6 +70,7 @@ export async function encryptSecret(
   plaintext: string,
   passphrase: string,
 ): Promise<{ salt: string; iv: string; ciphertext: string; version: number }> {
+  assertWebCryptoAvailable();
   const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
   const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
   const key = await deriveAesKey(passphrase, salt);
@@ -76,6 +92,7 @@ export async function decryptSecret(
   passphrase: string,
   bundle: { salt: string; iv: string; ciphertext: string; version: number },
 ): Promise<string> {
+  assertWebCryptoAvailable();
   if (bundle.version !== CRYPTO_VERSION) {
     throw new Error("Unsupported ciphertext version");
   }

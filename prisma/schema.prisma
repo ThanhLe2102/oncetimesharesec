@@ -28,6 +28,8 @@ model PairingSession {
   token     String    @unique
   expiresAt DateTime
   usedAt    DateTime?
+  secretId  String?
 
   @@index([expiresAt])
+  @@index([secretId])
 }

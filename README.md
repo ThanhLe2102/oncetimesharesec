@@ -53,6 +53,33 @@ docker compose up --build
 
 The `app` container runs `prisma migrate deploy` before `next start`, so tables are created automatically on first boot.
 
+### Troubleshooting: “Internal error storing secret” (mobile / pairing flow)
+
+If desktop “Share from this device” works but phone submission fails with **“Internal error storing secret”**, your database is usually **missing the latest migration** (for example the `PairingSession.secretId` column used by the phone pairing flow).
+
+- **Fix (recommended):** run migrations:
+
+```bash
+npx prisma migrate deploy
+```
+
+- If you’re using Docker Compose and want a clean slate, wipe the volume and restart:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+### Accessing from another device on your LAN (important for WebCrypto)
+
+This app uses the browser **Web Crypto API** (`crypto.subtle`) for end-to-end encryption/decryption. Most browsers only expose `crypto.subtle` in a **secure context**:
+
+- ✅ `https://...` (recommended)
+- ✅ `http://localhost:3000` (same machine only)
+- ❌ `http://<LAN-IP>:3000` (often blocked; `crypto.subtle` will be `undefined`)
+
+For cross-device testing, use HTTPS (for example a local reverse proxy with a trusted dev cert, or a tunnel such as Cloudflare Tunnel / ngrok).
+
 ### Stop and cleanup
 
 ```bash
